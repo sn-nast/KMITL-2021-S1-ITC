@@ -1,57 +1,53 @@
-// C++ code
-//
-void setup()
-{
+#define G 2
+#define Y 3
+#define R 4
+#define S1 12
+#define S2 11
+#define S3 10
+
+void green(){
+    digitalWrite(G, HIGH);
+    delay(1000);
+    digitalWrite(G, LOW);
+    delay(1000);
 }
 
-void loop()
-{
-  //LED1
-  pinMode(7, OUTPUT);
-  pinMode(6, OUTPUT);
-  pinMode(5, INPUT);
-  digitalWrite(7,HIGH);
-  delay(250);
-  //LED2
-  digitalWrite(7,LOW);
-  digitalWrite(6,HIGH);
-  delay(250);
-  //LED3
-  pinMode(7,INPUT);
-  pinMode(5, OUTPUT);
-  delay(250);
-  //LED4
-  digitalWrite(6,LOW);
-  digitalWrite(5,HIGH);
-  delay(250);
-  //LED5
-  digitalWrite(5,LOW);
-  pinMode(7,OUTPUT);
-  pinMode(6, INPUT);
-  digitalWrite(7,HIGH);
-  delay(250);
-  //LED6
-  digitalWrite(7,LOW); 
-  digitalWrite(5,HIGH);
-  delay(250);
-  //LED5
-  digitalWrite(5,LOW);
-  digitalWrite(7,HIGH);
-  delay(250);
-  //LED4
-  digitalWrite(7,LOW);
-  pinMode(7,INPUT);
-  pinMode(6, OUTPUT);
-  digitalWrite(6,LOW);
-  digitalWrite(5,HIGH);
-  delay(250);
-  //LED3
-  digitalWrite(5,LOW);
-  digitalWrite(6,HIGH);
-  delay(250);
-  //LED2
-  pinMode(7, OUTPUT);
-  pinMode(5, INPUT);
-  delay(250);
-  digitalWrite(6,LOW);
+void red(){
+    digitalWrite(R, HIGH);
+    delay(1000);
+    digitalWrite(R, LOW);
+    delay(1000);
 }
+
+void yellow(){
+    digitalWrite(Y, HIGH);
+    delay(1000);
+    digitalWrite(Y, LOW);
+    delay(1000);
+}
+void setup(){
+  pinMode(R, OUTPUT);
+  pinMode(Y, OUTPUT);
+  pinMode(G, OUTPUT);
+  pinMode(S1, INPUT);
+  pinMode(S2, INPUT);
+  pinMode(S3, INPUT);
+
+}
+
+void loop() {
+    green();
+    delay(1000);
+    digitalWrite(G, HIGH);
+    
+    yellow();
+    delay(1000);
+    digitalWrite(Y, HIGH);
+
+    red();
+    delay(1000);
+    digitalWrite(R, HIGH);
+
+
+}
+
