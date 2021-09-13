@@ -14,7 +14,7 @@ int c1 = 0;
 int c3 = 0;
 
 void setup() {
-  pinMode(button1, INPUT_PULLUP);
+  pinMode(button1, INPUT);
   pinMode(b2, INPUT_PULLUP);
   pinMode(b3, INPUT_PULLUP);
   pinMode(LED1, OUTPUT);
