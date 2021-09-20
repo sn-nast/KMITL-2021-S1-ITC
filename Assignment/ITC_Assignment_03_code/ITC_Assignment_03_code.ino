@@ -1,6 +1,6 @@
 #define B1 11
 #define B2 12
-#define allSegment 8
+// #define allSegment 8
 #define pressed LOW
 #define correctDigit B1111110
 #define greaterDigit B1011110
@@ -78,8 +78,8 @@ void loop() {
     int readB1 = digitalRead(B1);
     int readB2 = digitalRead(B2);
 
-    /* -------- PART 1 : Count numbers ----------*/
+    /* -------- PART 1 : Count number ----------*/
     if(readB1 == pressed && millis() - timeB1 >= 200){ count_number_button();}
-    /* ------- PART 2 : Guess the numbers --------*/    
+    /* ------- PART 2 : Guess the number --------*/    
     if(readB2 == pressed && millis() - timeB2 >= 200){ guess_number_button();}
 }
