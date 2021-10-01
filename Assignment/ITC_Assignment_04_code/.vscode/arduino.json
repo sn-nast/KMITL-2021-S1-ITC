@@ -1,6 +1,4 @@
 {
     "port": "COM5",
-    "configuration": "cpu=atmega328",
-    "board": "arduino:avr:nano",
-    "sketch": "ITC_Assignment_03_code.ino"
+    "board": "arduino:avr:nano"
 }
