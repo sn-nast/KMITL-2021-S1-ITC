@@ -2,34 +2,100 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #define OLED_RESET -1
+const short max_weight = 127, max_height = 31;
+unsigned int readResistor_now;
+unsigned int readResistor_last;
+unsigned long time_now;
+unsigned long time_last;
+
+int ball_posX, ball_posY;
+const int ball_radius = 3;
+int ball_moveX = 1, ball_moveY = 1; 
 
 Adafruit_SSD1306 OLED(OLED_RESET);
 
 struct Bar{
-    int lenght = 25;
-    int posX;
-    int posY;
-    int turn;
+    unsigned int lenght;
+    unsigned int posX;
+    unsigned int posY;
+    unsigned int turn;
+    unsigned int last_posX;
 } myBar;
 
 void setup(){
+    randomSeed(analogRead(A0));
     Serial.begin(115200);
     OLED.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-    myBar.posX = 0;
-    myBar.posY = 31;
-    myBar.turn = 1;
+    OLED.display();
 
+    //Set up myBar
+    myBar.lenght = 25;
+    myBar.posY = 31;
+    // myBar.turn = 1;
+    myBar.last_posX = 0;
+    //Set up controller
+    pinMode(A2, INPUT);
+    readResistor_last = 0;
+
+    ball_posX = random(0 + ball_radius, max_weight - ball_radius);
+    ball_posY = random(0 + ball_radius, (1/3)*max_height);
 }
 
 void loop() {
-// Auto move
-    // OLED.clearDisplay();
-    // OLED.drawLine(myBar.posX, myBar.posY, myBar.posX + myBar.lenght, myBar.posY, WHITE);
-    // OLED.display();
-    // Serial.println(myBar.posX);
-    // if(myBar.turn == 1) {myBar.posX++;}
-    // else if (myBar.turn  == 2) {myBar.posX--;}
-    // if(myBar.turn  == 1 && myBar.posX == 127 - myBar.lenght) {myBar.turn  = 2;}
-    // else if (myBar.turn  == 2 && myBar.posX == 0) {myBar.turn  = 1;}
+    time_now = millis();
+    readResistor_now = analogRead(A2);
+    const long double voltageSet = 1024/((max_weight - 1) - myBar.lenght);
 
+    OLED.clearDisplay();
+    // Moving
+    // Serial.println(readResistor);
+
+    // if(time_now - time_last > 10){
+    //     time_last = time_now;
+    //     if((unsigned int)(readResistor_now - readResistor_last) < voltageSet) {
+    //         Serial.println(readResistor_now);
+    //         myBar.posX = readResistor_now / voltageSet;
+    //         readResistor_last = readResistor_now;
+    //     }
+    //     else 
+    // myBar.last_posX = myBar.posX;
+    // }
+    Serial.println(analogRead(A0));
+    myBar.posX = readResistor_now / voltageSet;
+    OLED.drawLine(myBar.posX, myBar.posY, (myBar.posX + myBar.lenght), myBar.posY, WHITE);
+
+
+// Ball move
+    drawBall();
+    ball_posX += ball_moveX;
+    ball_posY += ball_moveY;
+    if(ball_posX - ball_radius == 0){
+        ball_moveX = 1;
+    }
+    if(ball_posX + ball_radius == max_weight){
+        ball_moveX = -1;
+    }
+    if(ball_posY - ball_radius == 0){
+        ball_moveY = 1;
+    }
+    if(ball_posY + ball_radius == max_height){
+        if(ball_posX > myBar.posX && ball_posX <= myBar.posX + myBar.lenght){
+            ball_moveY = -1;
+        }
+        else {
+            OLED.clearDisplay();
+            OLED.setCursor(5,6);
+            OLED.setTextSize(2);
+            OLED.setTextColor(WHITE);
+            OLED.println("Game over!");
+            OLED.display();
+            delay(5000);
+            setup();
+        }
+    }
+    OLED.display();
+}
+void drawBall(){
+    OLED.drawCircle(ball_posX, ball_posY, ball_radius, WHITE);
+    OLED.fillCircle(ball_posX, ball_posY, ball_radius, WHITE);
 }
