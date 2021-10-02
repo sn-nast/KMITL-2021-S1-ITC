@@ -5,34 +5,31 @@
 
 Adafruit_SSD1306 OLED(OLED_RESET);
 
-void setup(){
-    Serial.begin(115200);
-    OLED.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-
-}
-
-int i = 0;
-int Ro = 1;
-void loop()
-{
-
 struct Bar{
     int lenght = 25;
     int posX;
     int posY;
+    int turn;
 } myBar;
 
-myBar.posX = 0;
-myBar.posY = 31;
+void setup(){
+    Serial.begin(115200);
+    OLED.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+    myBar.posX = 0;
+    myBar.posY = 31;
+    myBar.turn = 1;
 
-    OLED.clearDisplay();
-    OLED.drawLine(i, myBar.posY, i + myBar.lenght, myBar.posY, WHITE);
-    OLED.display();
-    Serial.println(i);
-    if(Ro == 1) {i++;}
-    else if (Ro == 2) {i--;}
+}
 
-    if(Ro == 1 && i == 127 - myBar.lenght) {Ro = 2;}
-    else if (Ro == 2 && i == 0) {Ro = 1;}
+void loop() {
+// Auto move
+    // OLED.clearDisplay();
+    // OLED.drawLine(myBar.posX, myBar.posY, myBar.posX + myBar.lenght, myBar.posY, WHITE);
+    // OLED.display();
+    // Serial.println(myBar.posX);
+    // if(myBar.turn == 1) {myBar.posX++;}
+    // else if (myBar.turn  == 2) {myBar.posX--;}
+    // if(myBar.turn  == 1 && myBar.posX == 127 - myBar.lenght) {myBar.turn  = 2;}
+    // else if (myBar.turn  == 2 && myBar.posX == 0) {myBar.turn  = 1;}
 
 }
