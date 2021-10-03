@@ -8,6 +8,7 @@
 #define SCREEN_HEIGHT 32
 #define OLED_RESET -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+#define SPEAKER_PIN 3
 
 Adafruit_SSD1306 OLED(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
@@ -24,15 +25,18 @@ struct Ball{
     int radius;
     int moveX, moveY;  
     int addX, addY;
-    int timeNewBall = 100; 
+    int timeNewBall = 100;
+    int sound; 
 } ball;
 
 void drawBall();
+void checkSound(int);
 
 void setup(){
     randomSeed(analogRead(A0));
     Serial.begin(115200);
     OLED.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+    OLED.setTextSize(2);
 
     //Set up myBar
     myBar.lenght = 25;
@@ -51,8 +55,6 @@ void setup(){
     ball.addY = 1;
     ball.moveX = ball.addX;
     ball.moveX = ball.addY;
-
-    OLED.clearDisplay();
 }
 
 void loop() {
@@ -69,11 +71,10 @@ void loop() {
     OLED.drawLine(myBar.posX, myBar.posY, (myBar.posX + myBar.lenght), myBar.posY, WHITE);
 
     // Ball move
-    int timeS = 15;
-    int tone1 = 250;
     drawBall();
     if(myBar.turn == 1) {
-        delay(1);
+        OLED.setCursor(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
+        OLED.print((ball.timeNewBall/20));
         ball.timeNewBall--;
         if (ball.timeNewBall == 0) {
             myBar.turn = 0;
@@ -86,35 +87,45 @@ void loop() {
     }
 
     // Direction
-    if(ball.posX - ball.radius <= 0){
-        ball.posX = ball.radius;
-        ball.moveX = ball.addX ;
-    }
-    if(ball.posX + ball.radius >= SCREEN_WIDTH){
-        ball.posX = SCREEN_WIDTH - ball.radius;
-        ball.moveX = -ball.addX;
-    }
-    if(ball.posY - ball.radius <= 0){
-        ball.moveY = ball.addY ;
-    }
-    if(ball.posY + ball.radius >= myBar.posY){
-        if(ball.posX >= myBar.posX && ball.posX <= myBar.posX + myBar.lenght && 
-        ball.posY + ball.radius == myBar.posY){
-            ball.moveY = -ball.addY ;
-        }
-        else if (ball.posY - ball.radius >= SCREEN_HEIGHT) {
-            OLED.clearDisplay();
-            OLED.setCursor(5,6);
-            OLED.setTextSize(2);
-            OLED.setTextColor(WHITE);
-            OLED.println("Game over!");
+    if(myBar.turn != 1){
+        if(ball.posX - ball.radius <= 0){
+            ball.posX = ball.radius;
+            ball.moveX = ball.addX ;
+            checkSound(1);
             OLED.display();
-            delay(3000);
-            setup();
+        }
+        if(ball.posX + ball.radius >= SCREEN_WIDTH){
+            ball.posX = SCREEN_WIDTH - ball.radius;
+            ball.moveX = -ball.addX;
+            checkSound(1);
+            OLED.display();
+        }
+        if(ball.posY - ball.radius <= 0){
+            ball.moveY = ball.addY ;
+            checkSound(1);
+            OLED.display();
+        }
+        if(ball.posY + ball.radius >= myBar.posY){
+            if(ball.posX >= myBar.posX && ball.posX <= myBar.posX + myBar.lenght && 
+            ball.posY + ball.radius == myBar.posY){
+                ball.moveY = -ball.addY ;
+                checkSound(1);
+                OLED.display();
+            }
+            else if (ball.posY - ball.radius >= SCREEN_HEIGHT) {
+                OLED.clearDisplay();
+                OLED.setCursor(5,6);
+                OLED.setTextSize(2);
+                OLED.setTextColor(WHITE);
+                OLED.println("Game over!");
+                OLED.display();
+                checkSound(2);
+                delay(3000);
+                setup();
+            }
         }
     }
     OLED.display();
-    checkSound();
 }
 
 void drawBall(){
@@ -122,16 +133,11 @@ void drawBall(){
     OLED.fillCircle(ball.posX, ball.posY, ball.radius, WHITE);
 }
 
-void checkSound(){
-    if(soundType == 1) {
-        for(int i = 4000; i <5000; i++){
-            tone(SPEAKER_PIN, i, 2);
-        }
-        soundType = 0;
+void checkSound(int n){
+    if(n == 1) {
+        tone(SPEAKER_PIN, 200, 20);
     }
-    if(soundType == 2) {
+    else if(n == 2) {
         tone(SPEAKER_PIN, 3951, 20);
-        soundType = 0;
     }
-    noTone(SPEAKER_PIN);
 }
