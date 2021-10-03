@@ -5,9 +5,15 @@
 #define OLED_RESET -1
 const short max_weight = 127, max_height = 31;
 
-// For moving by Resistor
 int readResistor_now;
 int readResistor_last;
+unsigned long time_now;
+unsigned long time_last;
+
+int ball_posX, ball_posY;
+const int ball_radius = 3;
+int ball_moveX = 1, ball_moveY = 1; 
+
 
 Adafruit_SSD1306 OLED(OLED_RESET);
 
@@ -50,7 +56,40 @@ void loop() {
             myBar.posX = readResistor_now / voltageSet;
         }
             OLED.drawLine(myBar.posX, myBar.posY, (myBar.posX + myBar.lenght), myBar.posY, WHITE);
-    
+    // Ball move
+    drawBall();
+    ball_posX += ball_moveX;
+    ball_posY += ball_moveY;
+    if(ball_posX - ball_radius == 0){
+        ball_moveX = 1;
+    }
+    if(ball_posX + ball_radius == max_weight){
+        ball_moveX = -1;
+    }
+    if(ball_posY - ball_radius == 0){
+        ball_moveY = 1;
+    }
+    if(ball_posY + ball_radius == max_height){
+        if(ball_posX > myBar.posX && ball_posX <= myBar.posX + myBar.lenght){
+            ball_moveY = -1;
+        }
+        else {
+            OLED.clearDisplay();
+            OLED.setCursor(5,6);
+            OLED.setTextSize(2);
+            OLED.setTextColor(WHITE);
+            OLED.println("Game over!");
+            OLED.display();
+            delay(5000);
+            setup();
+        }
+    }
+    OLED.display();
+}
+
+void drawBall(){
+    OLED.drawCircle(ball_posX, ball_posY, ball_radius, WHITE);
+    OLED.fillCircle(ball_posX, ball_posY, ball_radius, WHITE);
     OLED.display();
 }
 
