@@ -4,10 +4,10 @@
 #include <math.h>
 #define OLED_RESET -1
 const short max_weight = 127, max_height = 31;
+
+// For moving by Resistor
 int readResistor_now;
 int readResistor_last;
-unsigned long time_now;
-unsigned long time_last; 
 
 Adafruit_SSD1306 OLED(OLED_RESET);
 
@@ -21,15 +21,15 @@ struct Bar{
 
 void setup(){
     randomSeed(analogRead(A0));
-    Serial.begin(9600);
+    Serial.begin(115200);
     OLED.begin(SSD1306_SWITCHCAPVCC, 0x3C);
     OLED.display();
 
     //Set up myBar
     myBar.lenght = 25;
     myBar.posY = 31;
-    // myBar.turn = 1;
     myBar.last_posX = 0;
+
     //Set up controller
     pinMode(A2, INPUT);
     readResistor_last = 0;
@@ -37,36 +37,20 @@ void setup(){
 }
 
 void loop() {
-    time_now = millis();
     readResistor_now = analogRead(A2);
-    const long double voltageSet = 1024/((max_weight - 1) - myBar.lenght);
+    double voltageSet = 1024.0/((max_weight - 1) - myBar.lenght);
 
     OLED.clearDisplay();
-    // Moving.
-    int long rateWhat = 33;
-    Serial.println(time_now);
-    Serial.println(time_last);
-    Serial.println("**************");
     
-    if(time_now - time_last > 50){
-        time_last = time_now;
-        // time_last += rateWhat;
-        // readResistor_last = readResistor_now;
-        Serial.print("now\t\t: ");
-        Serial.println(readResistor_now);
-        Serial.print("last\t: ");
-        Serial.println(readResistor_last);
-        Serial.print("diff\t: ");
-        Serial.println((readResistor_now - readResistor_last));
-        // Serial.println("-------");
-        
-        if( myBar.posX == myBar.last_posX && abs(readResistor_now-readResistor_last) > voltageSet ){
+    // Moving by Resistor 
+        Serial.println(voltageSet);
+        if( abs(readResistor_now-readResistor_last) > voltageSet ){
             readResistor_last = readResistor_now;
             myBar.last_posX = myBar.posX;
             myBar.posX = readResistor_now / voltageSet;
-            OLED.drawLine(myBar.posX, myBar.posY, (myBar.posX + myBar.lenght), myBar.posY, WHITE);
         }
-    }
+            OLED.drawLine(myBar.posX, myBar.posY, (myBar.posX + myBar.lenght), myBar.posY, WHITE);
+    
     OLED.display();
 }
 
