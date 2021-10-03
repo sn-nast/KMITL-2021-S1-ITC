@@ -40,6 +40,10 @@ void setup(){
     pinMode(A2, INPUT);
     readResistor_last = 0;
     myBar.last_posX = myBar.posX;
+
+    // Set up ball
+    ball_posX = random(0 + ball_radius, max_weight - ball_radius);
+    ball_posY = random(0 + ball_radius, (1/3)*max_height);
 }
 
 void loop() {
