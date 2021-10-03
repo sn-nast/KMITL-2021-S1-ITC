@@ -1,10 +1,11 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <math.h>
 #define OLED_RESET -1
 const short max_weight = 127, max_height = 31;
-unsigned int readResistor_now;
-unsigned int readResistor_last;
+int readResistor_now;
+int readResistor_last;
 unsigned long time_now;
 unsigned long time_last; 
 
@@ -20,7 +21,7 @@ struct Bar{
 
 void setup(){
     randomSeed(analogRead(A0));
-    Serial.begin(115200);
+    Serial.begin(9600);
     OLED.begin(SSD1306_SWITCHCAPVCC, 0x3C);
     OLED.display();
 
@@ -32,6 +33,7 @@ void setup(){
     //Set up controller
     pinMode(A2, INPUT);
     readResistor_last = 0;
+    myBar.last_posX = myBar.posX;
 }
 
 void loop() {
@@ -40,22 +42,31 @@ void loop() {
     const long double voltageSet = 1024/((max_weight - 1) - myBar.lenght);
 
     OLED.clearDisplay();
-    // Moving
-    // Serial.println(readResistor);
-
-    // if(time_now - time_last > 10){
-    //     time_last = time_now;
-    //     if((unsigned int)(readResistor_now - readResistor_last) < voltageSet) {
-    //         Serial.println(readResistor_now);
-    //         myBar.posX = readResistor_now / voltageSet;
-    //         readResistor_last = readResistor_now;
-    //     }
-    //     else 
-    // myBar.last_posX = myBar.posX;
-    // }
-    Serial.println(analogRead(A0));
-    myBar.posX = readResistor_now / voltageSet;
-    OLED.drawLine(myBar.posX, myBar.posY, (myBar.posX + myBar.lenght), myBar.posY, WHITE);
+    // Moving.
+    int long rateWhat = 33;
+    Serial.println(time_now);
+    Serial.println(time_last);
+    Serial.println("**************");
+    
+    if(time_now - time_last > 50){
+        time_last = time_now;
+        // time_last += rateWhat;
+        // readResistor_last = readResistor_now;
+        Serial.print("now\t\t: ");
+        Serial.println(readResistor_now);
+        Serial.print("last\t: ");
+        Serial.println(readResistor_last);
+        Serial.print("diff\t: ");
+        Serial.println((readResistor_now - readResistor_last));
+        // Serial.println("-------");
+        
+        if( myBar.posX == myBar.last_posX && abs(readResistor_now-readResistor_last) > voltageSet ){
+            readResistor_last = readResistor_now;
+            myBar.last_posX = myBar.posX;
+            myBar.posX = readResistor_now / voltageSet;
+            OLED.drawLine(myBar.posX, myBar.posY, (myBar.posX + myBar.lenght), myBar.posY, WHITE);
+        }
+    }
     OLED.display();
 }
 
