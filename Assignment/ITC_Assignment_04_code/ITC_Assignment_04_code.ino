@@ -4,6 +4,7 @@
 #include <math.h>
 #define OLED_RESET -1
 const short max_weight = 127, max_height = 31;
+const int SPEAKER_PIN = 3; 
 
 int readResistor_now;
 int readResistor_last;
@@ -14,7 +15,9 @@ int ball_posX, ball_posY;
 const int ball_radius = 3;
 int ball_moveX = 1, ball_moveY = 1; 
 
-
+int numTones = 10;
+int tones[] = {261,277,294,311,330,349,370,392,415,440};
+int soundType;
 Adafruit_SSD1306 OLED(OLED_RESET);
 
 struct Bar{
@@ -24,6 +27,9 @@ struct Bar{
     unsigned int turn;
     unsigned int last_posX;
 } myBar;
+
+void drawBall();
+void checkSound();
 
 void setup(){
     randomSeed(analogRead(A0));
@@ -44,6 +50,9 @@ void setup(){
     // Set up ball
     ball_posX = random(0 + ball_radius, max_weight - ball_radius);
     ball_posY = random(0 + ball_radius, (1/3)*max_height);
+
+    // Set up speaker
+    pinMode(SPEAKER_PIN, OUTPUT);
 }
 
 void loop() {
@@ -60,22 +69,29 @@ void loop() {
             myBar.posX = readResistor_now / voltageSet;
         }
             OLED.drawLine(myBar.posX, myBar.posY, (myBar.posX + myBar.lenght), myBar.posY, WHITE);
+
     // Ball move
+    int timeS = 15;
+    int tone1 = 250;
     drawBall();
     ball_posX += ball_moveX;
     ball_posY += ball_moveY;
     if(ball_posX - ball_radius == 0){
         ball_moveX = 1;
+        soundType = 1;
     }
     if(ball_posX + ball_radius == max_weight){
         ball_moveX = -1;
+        soundType = 1;
     }
     if(ball_posY - ball_radius == 0){
         ball_moveY = 1;
+        soundType = 1;
     }
     if(ball_posY + ball_radius == max_height){
         if(ball_posX > myBar.posX && ball_posX <= myBar.posX + myBar.lenght){
             ball_moveY = -1;
+            soundType = 1;
         }
         else {
             OLED.clearDisplay();
@@ -84,11 +100,13 @@ void loop() {
             OLED.setTextColor(WHITE);
             OLED.println("Game over!");
             OLED.display();
+            soundType = 2;
             delay(5000);
             setup();
         }
     }
     OLED.display();
+    checkSound();
 }
 
 void drawBall(){
@@ -97,3 +115,16 @@ void drawBall(){
     OLED.display();
 }
 
+void checkSound(){
+    if(soundType == 1) {
+        for(int i = 4000; i <5000; i++){
+            tone(SPEAKER_PIN, i, 2);
+        }
+        soundType = 0;
+    }
+    if(soundType == 2) {
+        tone(SPEAKER_PIN, 3951, 20);
+        soundType = 0;
+    }
+    noTone(SPEAKER_PIN);
+}
