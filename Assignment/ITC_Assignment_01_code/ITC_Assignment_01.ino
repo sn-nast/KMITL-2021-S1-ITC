@@ -1,5 +1,5 @@
-// C++ code
-//
+// C++ code /c
+// 
 void setup()
 {
 }
