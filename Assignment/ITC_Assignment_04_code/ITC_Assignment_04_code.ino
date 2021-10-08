@@ -69,6 +69,8 @@ void loop() {
         readResistor_last = readResistor_now;
         myBar.posX = readResistor_now / voltageSet;
     }
+    // myBar.posX =  map(readResistor_now, 0, 1023, 0, SCREEN_WIDTH-1);
+
     OLED.drawLine(myBar.posX, myBar.posY, (myBar.posX + myBar.lenght), myBar.posY, WHITE);
 
     // Ball move
