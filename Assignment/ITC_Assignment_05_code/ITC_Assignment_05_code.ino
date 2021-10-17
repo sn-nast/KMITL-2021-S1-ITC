@@ -66,10 +66,12 @@ void setup() {
   pinMode(LED_W_Y, OUTPUT);
   pinMode(LED_W_G, OUTPUT);
   pinMode(WEST_BUTTON_PIN, INPUT);
+
   pinMode(LED_S_R, OUTPUT);
   pinMode(LED_S_Y, OUTPUT);
   pinMode(LED_S_G, OUTPUT);
   pinMode(SOUTH_BUTTON_PIN, INPUT);
+  
   pinMode(LED_WALK_R, OUTPUT);
   pinMode(LED_WALK_G, OUTPUT);
   pinMode(WALK_BUTTON_PIN, INPUT);

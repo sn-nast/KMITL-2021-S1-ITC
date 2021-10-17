@@ -1,0 +1,5 @@
+{
+    "port": "COM5",
+    "board": "arduino:avr:nano",
+    "sketch": "ITC_Assignment_05_code.ino"
+}
