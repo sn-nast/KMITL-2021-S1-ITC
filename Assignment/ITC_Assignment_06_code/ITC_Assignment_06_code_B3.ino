@@ -19,15 +19,16 @@ void receiveEvent(int num){
     	text[pos] = Wire.read();
     	pos++;
   	}
- 	if (text[pos - 1] == '9') {
-		Serial.println(text);
-		return;
-	}          
-  	else {text[pos - 1]++;}
+	Serial.print("Recieve\t: ");
   	Serial.println(text);
+	if (text[pos - 1] != '9') {
+		text[pos - 1]++;
+	}
 }
 
 void requestEvent(){
+	Serial.print("Sent\t\t: ");
+  	Serial.println(text);
 	Wire.write(text);
 }
 

@@ -9,18 +9,16 @@ static char text[MAX_TEXT_LENGHT] = "HELLO1";
 static unsigned int pos = 0;
 bool status = true;
 int sizeText = strlen(text);
+int BOARD_NAME = 1;
 
 void setup() {
   	Serial.begin(4800);
   	Wire.begin();
+	Serial.println(text);
 }
 
 void serialEvent(){
-	// New text
-	status = true;
-	for(int n = 0; n < sizeText; n++){
-		text[n] = ' ';
-	}
+	// Start typing
 	while (Serial.available() > 0) {		
 		char inByte = Serial.read();
       	if (inByte != '\n' && (pos < MAX_TEXT_LENGHT - 2)){
@@ -28,9 +26,8 @@ void serialEvent(){
         	pos++;
       	}
     }
-  	text[pos] = '1';
-    text[pos + 1] = '\0';
-    sizeText = strlen(text);
+  	text[pos] = BOARD_NAME;
+  	Serial.println(text);
 }   
 
 void request(uint8_t boardADDR){
@@ -43,25 +40,22 @@ void request(uint8_t boardADDR){
     		pos++;
     	}
     }
+   	if (text[pos - 1] == '9') {check();}
 	Serial.println(text);          
-   	check();
 }
 
-void writeBus(uint8_t boardADDR){
-	Serial.println(text);          
-    Wire.beginTransmission(boardADDR);
+void writeBus(uint8_t boardARRD){
+    Wire.beginTransmission(boardARRD);
 	Wire.write(text);
-	Wire.endTransmission(boardADDR); 
+	Wire.endTransmission(boardARRD); 
 }
 
 void check(){
-	// '9' to '1'
   	for(int n = 0; n < sizeText; n++) {
     	if (text[n] == '9' && text[n + 1] == '\0') { 
+			Serial.println(text);
 			status = false;
           	text[n] = '1';
-			Serial.print("Convert\t\t: \t");
-			Serial.println(text);
 		}
     }
 }
@@ -69,13 +63,9 @@ void check(){
 void loop() {
   	delay(50);
 	while (status) {
-		Serial.print("Sent to B2\t\t: ");
 		writeBus(SLAVE_B1_B2_ADDR);
-		Serial.print("Receive from B2\t: ");
 		request(SLAVE_B1_B2_ADDR); 
-		Serial.print("Sent to B3\t\t: ");
 		writeBus(SLAVE_B1_B3_ADDR);
-		Serial.print("Receive from B3\t: ");
 		request(SLAVE_B1_B3_ADDR); 
 	}
 }
