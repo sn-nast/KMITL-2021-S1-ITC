@@ -43,8 +43,8 @@ void request(uint8_t boardADDR){
     		pos++;
     	}
     }
-	Serial.println(text);          
-   	check();
+	Serial.println(text);       
+  	// check();
 }
 
 void writeBus(uint8_t boardADDR){
@@ -55,13 +55,9 @@ void writeBus(uint8_t boardADDR){
 }
 
 void check(){
-	// '9' to '1'
   	for(int n = 0; n < sizeText; n++) {
     	if (text[n] == '9' && text[n + 1] == '\0') { 
 			status = false;
-          	text[n] = '1';
-			Serial.print("Convert\t\t: \t");
-			Serial.println(text);
 		}
     }
 }

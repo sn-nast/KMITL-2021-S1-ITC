@@ -18,7 +18,11 @@ void setup() {
 }
 
 void serialEvent(){
-	// Start typing
+	// New text
+	status = true;
+	for(int n = 0; n < sizeText; n++){
+		text[n] = ' ';
+	}
 	while (Serial.available() > 0) {		
 		char inByte = Serial.read();
       	if (inByte != '\n' && (pos < MAX_TEXT_LENGHT - 2)){
@@ -26,10 +30,10 @@ void serialEvent(){
         	pos++;
       	}
     }
-  	text[pos] = BOARD_NAME;
-  	Serial.println(text);
+  	text[pos] = '1';
+    text[pos + 1] = '\0';
+	sizeText = strlen(text);
 }   
-
 void request(uint8_t boardADDR){
 	pos = 0;
 	Wire.requestFrom(boardADDR, sizeText);
@@ -53,9 +57,7 @@ void writeBus(uint8_t boardARRD){
 void check(){
   	for(int n = 0; n < sizeText; n++) {
     	if (text[n] == '9' && text[n + 1] == '\0') { 
-			Serial.println(text);
 			status = false;
-          	text[n] = '1';
 		}
     }
 }

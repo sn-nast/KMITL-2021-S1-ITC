@@ -24,6 +24,9 @@ void receiveEvent(int num){
 	if (text[pos - 1] != '9') {
 		text[pos - 1]++;
 	}
+  	else if (text[pos - 1] == '9') {
+    	text[pos - 1] = '1';
+  	}
 }
 
 void requestEvent(){
