@@ -6,14 +6,21 @@
 #include <math.h>
 #include <TimerOne.h>
 
-#define LED_PIN 7 
+// Adafruit screen
+#define SCREEN_WIDTH    128
+#define SCREEN_HEIGHT   32
+#define OLED_RESET      -1
+#define SCREEN_ADDRESS  0x3C
+Adafruit_SSD1306 OLED(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+// Alert LED
+#define LED_PIN 7
 
 // Button
 #define PRESSED LOW
 const int B1_PIN = 4;
 const int B2_PIN = 5;
 const int B3_PIN = 6;
-
 const int BT1 = 0;
 const int BT2 = 1;
 const int BT3 = 2;
@@ -26,13 +33,12 @@ struct _Button {
     unsigned long PressedTime;
     unsigned long ReleasedTime;
     unsigned long CountPressedTime;
-    unsigned int CountPressed;
 };
 
 _Button Button[3] = {
-    {0, 0, B1_PIN, false, 0, 0, 0, 0},
-    {0, 0, B2_PIN, false, 0, 0, 0, 0},
-    {0, 0, B3_PIN, false, 0, 0, 0, 0}
+    {0, 0, B1_PIN, false, 0, 0, 0},
+    {0, 0, B2_PIN, false, 0, 0, 0},
+    {0, 0, B3_PIN, false, 0, 0, 0}
 };
 
 _Button *p1 = &Button[BT1];
@@ -43,13 +49,6 @@ const int LONG_PRESS_TIME  = 2000;
 const int SHORT_PRESS_TIME  = 1000;
 const int DEBOUCE_TIME = 300;
 const int SHORT_PRESSED_TYPE = 1, LONG_PRESSED_TYPE = 2;
-
-// Adafruit screen
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 32
-#define OLED_RESET -1
-#define SCREEN_ADDRESS 0x3C
-Adafruit_SSD1306 OLED(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // Accelerometer [ADXL335]
 const unsigned int X_AXIS_PIN = 0;
@@ -91,6 +90,7 @@ struct _ClockMode {
 };
 _ClockMode ClockMode[3];
 _ClockMode *cm_Main = &ClockMode[CLOCK_MODE];
+
 // EEPROM
 int eeAddress_Hour = 0, eeAddress_Minute = 1;  
 
@@ -98,12 +98,12 @@ void setup(){
     Serial.begin(9600);
 
     OLED.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
-    OLED.display();
     OLED.clearDisplay();
-
+    
+    // Read time
     cm_Main->Hour = EEPROM.read(eeAddress_Hour);
     cm_Main->Minute = EEPROM.read(eeAddress_Minute);
-    Timer1.initialize(1000000);         // Interrupt every 1 sec (1.0E+6 microsecs)
+    Timer1.initialize(1000000);                    // Interrupt every 1 sec (1.0E+6 microsecs)
     Timer1.attachInterrupt(CountTime);
 
     NowSelectedMode = CLOCK_MODE;
@@ -116,6 +116,11 @@ void setup(){
 }
 
 void loop() {
+    Serial.print(get_x());
+    Serial.print(" ");
+    Serial.print(get_y());
+    Serial.print(" ");
+    Serial.println(get_z());
     if (openSelectMode == false){
         if (openSetup == false){
             if (NowSelectedMode  == CLOCK_MODE)             { Clock();}
@@ -134,6 +139,11 @@ void Clock(){
     OLED.setTextColor(WHITE);
     short Horizontal = 0, Vertical = 1;
     short clockType;
+
+    // LED Alert
+    cm_Main->Alert = true;
+    LedAlert(cm_Main, 2);
+
     // Set rotation
     if (get_y() < DegreeRatio(-20, 'y') && get_z() > DegreeRatio(-45, 'z')) {
         OLED.setRotation(1);
@@ -151,10 +161,7 @@ void Clock(){
         OLED.setRotation(0);
         clockType = Horizontal;
     }
-    // Alert
-    cm_Main->Alert = true;
-    LedAlert(cm_Main, 2);
-
+    
     // Display
     if (clockType == Horizontal) {
         OLED.setTextSize(4);
@@ -169,7 +176,7 @@ void Clock(){
         OLED.display();
     }
     else if (clockType == Vertical){
-        // Hour
+        // display Hour
         OLED.setTextSize(1);
         OLED.setCursor(3, 3);
         OLED.println("Hour");
@@ -180,7 +187,7 @@ void Clock(){
         OLED.println(cm_Main->Hour);
         OLED.println(" ");
 
-        // Min
+        // display Min
         OLED.setTextSize(1);
         OLED.setCursor(6, 45);
         OLED.println("Min");
@@ -189,11 +196,9 @@ void Clock(){
         OLED.setCursor(3, 59);
         if (cm_Main->Minute < 10) { OLED.print(0); }
         OLED.println(cm_Main->Minute);
-
-        OLED.setTextSize(2);
         OLED.println(" ");
 
-        // Sec
+        // display Sec
         OLED.setTextSize(1);
         OLED.setCursor(6, 87);
         OLED.println("Sec");
@@ -206,6 +211,7 @@ void Clock(){
     }
 }
 
+// ACC specify position
 int get_axis(const int axis) {
     delay(1);
     buffer[axis][buffer_pos[axis]] = analogRead(PINS[axis]);
@@ -216,12 +222,13 @@ int get_axis(const int axis) {
     }
     return round(sum / BUFFER_SIZE);
 }
-
 int get_x() { return get_axis(0); }
 int get_y() { return get_axis(1); }
 int get_z() { return get_axis(2); }
 
+// Convert Degree to ACC number
 int DegreeRatio(int Angle, char Axis){
+    // Degree to Radian
     double Radian = (Angle*PI) / 180;
     int Ratio, Origin;
     switch (Axis) {
@@ -246,6 +253,7 @@ int DegreeRatio(int Angle, char Axis){
     int ConvertToACC = Origin + (sin(Radian) * Ratio);
     return ConvertToACC;
 }
+
 // ISR
 void CountTime(void){
     cm_Main->LastSecond = cm_Main->Second;
@@ -257,15 +265,14 @@ void CountTime(void){
             cm_Main->Minute = 0;
             if (cm_Main->Hour == 24){
                 cm_Main->Hour = 0;
-                return;
             }
-            return;
         }
         return;
     }
     cm_Main->Second++; 
 }
 
+// Keep time
 void KeepInEEPROM(void){
     EEPROM.update(eeAddress_Hour, cm_Main->Hour);
     EEPROM.update(eeAddress_Minute, cm_Main->Minute);
@@ -275,28 +282,25 @@ void Stopwatch(void){
     _ClockMode *cm = &ClockMode[STOPWATCH_MODE];
     OLED.clearDisplay();
     OLED.setTextColor(WHITE);
+
+    // display Minute
     OLED.setTextSize(4);
     OLED.setCursor(6,2);
-    // Minute
     if (cm->Minute < 10) { OLED.print(0); }
     OLED.print(cm->Minute);
     OLED.print(":");
-    // Second
+    // display Second
     if (cm->Second < 10) { OLED.print(0); }
     OLED.print(cm->Second);
     OLED.display();
 
-    // start stop
-    if (CheckShortPressed(p2) == true) {cm->StartState = !cm->StartState;}
-    // clear 00:00
-    else if (CheckShortPressed(p3) == true && cm->StartState == false){
-        cm->Second = 0;
-        cm->Minute = 0;
-        cm->Hour = 0;
-        cm->Alert = false;
-    }
+    // Check pressed
+    CheckPressedInNotClockMode(cm);
+
+    // LED Alert
     if (cm->StartState == true) {LedAlert(cm, 3);}
     else   {LedAlert(cm, 2);}
+
     // Stopwatch part
     if (cm->StartState == true && millis() - cm->LastTimeChangeStart > DEBOUCE_TIME) {
         cm->Alert = true;
@@ -320,29 +324,24 @@ void Timer(void){
     _ClockMode *cm = &ClockMode[TIMER_MODE];
     OLED.clearDisplay();
     OLED.setTextColor(WHITE);
+
+    // display Minute
     OLED.setTextSize(4);
     OLED.setCursor(6,2);
-    // Minute
     if (cm->Minute < 10) { OLED.print(0); }
     OLED.print(cm->Minute);
     OLED.print(":");
-    // Second
+    // display Second
     if (cm->Second < 10) { OLED.print(0); }
     OLED.print(cm->Second);
     OLED.display();
 
-    // start stop
-    if (CheckShortPressed(p2) == true && (cm->Minute > 0 || cm->Second > 0)){
-        cm->StartState = !cm->StartState;
-    }
-    // Clear
-    else if (CheckShortPressed(p3) == true && cm->StartState == false){
-        cm->Second = 0;
-        cm->Minute = 0;
-        cm->Hour = 0;
-        cm->Alert = false;
-    }
+    // Check pressed
+    CheckPressedInNotClockMode(cm);
+
+    // LED Alert
     LedAlert(cm, 1);
+
     // Timer part
     if (cm->StartState == true && millis() - cm->LastTimeChangeStart > DEBOUCE_TIME) {
         if (cm->LastSecond != cm_Main->LastSecond){
@@ -379,11 +378,10 @@ void SelectMode(){
     int sizeMode = sizeof(ClockSetupMode)/sizeof(ClockSetupMode[0]);
     OLED.display();
 
-    // Setup Mode
+    // Select Mode
     if (CheckShortPressedFromLongPressed(p1) == true) {
         openSelectMode = false;
         openSetup = false;
-        ClearCountPressed();
     }
     // Scroll down
     if (CheckShortPressed(p2) == true) {
@@ -411,6 +409,12 @@ void SetupMode() {
     _ClockMode *cm = &ClockMode[NowSelectedMode];
     cm->StartState = false;
 
+    // LED alert
+    bool tempAlert = cm->Alert;
+    cm->Alert = true;
+    LedAlert(cm, 1);
+    cm->Alert = tempAlert;
+
     // Keep data
     int size = sizeof(cs->Digit)/sizeof(cs->Digit[0]);
     if (NowSelectedMode == CLOCK_MODE) {
@@ -429,7 +433,6 @@ void SetupMode() {
     // Close setup
     if (CheckShortPressed(p1) == true) {
         openSetup = false;
-        ClearCountPressed();
         p2->NowPressed = false;
     }
     // Change digit
@@ -443,7 +446,7 @@ void SetupMode() {
         else if(digitPos == size- 1) {digitPos = 0;}
     }
 
-    // Display in setup mode
+    // Alert display in setup mode
     OLED.clearDisplay();
     OLED.setTextColor(WHITE);
     OLED.setRotation(0);
@@ -461,6 +464,7 @@ void SetupMode() {
     }
     OLED.display();
 
+    // Setup num
     if (NowSelectedMode == CLOCK_MODE) {
         cm_Main->Hour = cs->Digit[0]*10 + cs->Digit[1];
         cm_Main->Minute = cs->Digit[2]*10 + cs->Digit[3];
@@ -508,7 +512,6 @@ bool CheckShortPressed(_Button *p){
     if (p->NowPressed == true) {return ShortPressed;}
     if (p->Read == PRESSED && millis() - p->PressedTime > DEBOUCE_TIME){
         p->PressedTime = millis();
-        p->CountPressed++;
         ShortPressed = true;
     }
     p->CountPressedTime = 0;
@@ -527,10 +530,21 @@ bool CheckShortPressedFromLongPressed(_Button *p){
     return ShortPressed;
 }
 
-void ClearCountPressed(){
-    for (int n = 0; n < 3; n++){
-        _Button *p = &Button[n];
-        p->CountPressed = 0;
+void CheckPressedInNotClockMode (_ClockMode *cm) {
+    // Button 2 - start stop
+    if (CheckShortPressed(p2) == true){
+        //  Can't press in Timer mode if Timer not yet set
+        if (NowSelectedMode != TIMER_MODE ||
+            (NowSelectedMode == TIMER_MODE  && (cm->Minute > 0 || cm->Second > 0))){
+            cm->StartState = !cm->StartState;
+        }
+    }
+    // Button 3 - Clear
+    else if (CheckShortPressed(p3) == true && cm->StartState == false){
+        cm->Second = 0;
+        cm->Minute = 0;
+        cm->Hour = 0;
+        cm->Alert = false;
     }
 }
 
