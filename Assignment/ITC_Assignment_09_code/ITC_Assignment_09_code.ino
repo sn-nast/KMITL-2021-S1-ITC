@@ -50,7 +50,8 @@ void LEDred(void *pvParameters) {
     vTaskDelay(1);
   }
 }
-void LEDgreen(void *pvParameters) {
+
+void LEDyellow(void *pvParameters) {
   pinMode(SW2, INPUT);
   pinMode(YELLOW, OUTPUT);
   unsigned long a = 0;
@@ -63,7 +64,7 @@ void LEDgreen(void *pvParameters) {
       state = false;
       digitalWrite(YELLOW, LOW);
     } 
-    else if(xSemaphoreTake(xMutex2, ( TickType_t ) 5 )== pdFALSE){
+    else if(xSemaphoreTake(xMutex2, ( TickType_t ) 5 ) == pdFALSE){
       xSemaphoreGive( xMutex );
       state = false;
       digitalWrite(YELLOW, LOW);
@@ -86,7 +87,8 @@ void LEDgreen(void *pvParameters) {
     vTaskDelay(1);
   }
 }
-void LEDyellow(void *pvParameters) {
+
+void LEDgreen(void *pvParameters) {
   pinMode(SW3, INPUT);
   pinMode(GREEN, OUTPUT);
   unsigned long a = 0;
